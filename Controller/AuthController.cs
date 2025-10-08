@@ -29,7 +29,35 @@ namespace EasyClassAPI.Controller
         }
 
 
+        [HttpPost]
+        [Route("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterDto model)
+        {
+            var userExist = await _userManager.FindByEmailAsync(model.Email);
+            if (userExist != null)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                       new Response { Status = "Error", Message = "Usuario já existe! " });
+            }
+            var user = new ApplicationUser
+            {
+                Email = model.Email,
+                SecurityStamp = Guid.NewGuid().ToString(),
+                UserName = model.Email,
+                Nome = model.Nome
+            };
+            var result = await _userManager.CreateAsync(user, model.Password!);
 
+            if (!result.Succeeded)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new Response { Status = "Error", Message = "User creation failded." });
+
+            }
+
+            return Ok(new Response { Status = "Success", Message = "User created successfully" });
+
+        }
 
         [HttpPost]
         [Route("login")]
@@ -167,36 +195,5 @@ namespace EasyClassAPI.Controller
         }
 
 
-
-
-        [HttpPost]
-        [Route("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterDto model)
-        {
-            var userExist = await _userManager.FindByEmailAsync(model.Email);
-            if (userExist != null)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                       new Response { Status = "Error", Message = "Usuario já existe! " });
-            }
-            var user = new ApplicationUser
-            {
-                Email = model.Email,
-                SecurityStamp = Guid.NewGuid().ToString(),
-                UserName = model.Email,
-                Nome = model.Nome
-            };
-            var result = await _userManager.CreateAsync(user, model.Password!);
-
-            if (!result.Succeeded)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new Response { Status = "Error", Message = "User creation failded." });
-
-            }
-
-            return Ok(new Response { Status = "Success", Message = "User created successfully" });
-
-        }
     }
 }
